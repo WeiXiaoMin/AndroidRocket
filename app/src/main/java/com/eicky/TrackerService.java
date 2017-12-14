@@ -62,7 +62,7 @@ public class TrackerService extends AccessibilityService {
                 classNameStr = classNameStr.substring(packageNameStr.length());
             }
             if (mFloatWindowUtils != null) {
-                mFloatWindowUtils.updateDisplay(classNameStr, "");
+                mFloatWindowUtils.updateDisplay(classNameStr, null);
             }
 
         } else if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED

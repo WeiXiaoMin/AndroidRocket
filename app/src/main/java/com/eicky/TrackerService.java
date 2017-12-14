@@ -97,6 +97,10 @@ public class TrackerService extends AccessibilityService {
                     sb.append("viewId:");
                     sb.append(idName);
                 }
+                if (TextUtils.isEmpty(sb.toString())) {
+                    sb.append("source:");
+                    sb.append(source.getClassName());
+                }
                 if (mFloatWindowUtils != null) {
                     mFloatWindowUtils.updateDisplay(null, sb.toString());
                 }

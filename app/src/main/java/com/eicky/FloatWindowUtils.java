@@ -2,6 +2,7 @@ package com.eicky;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.support.annotation.Nullable;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
@@ -55,8 +56,14 @@ public class FloatWindowUtils {
         }
     }
 
-    public void updateDisplay(String packageNameStr, String classNameStr) {
+    public void updateDisplay(@Nullable String text1, @Nullable String text2) {
         if (mFloatView != null)
-            mFloatView.updateDisplay(packageNameStr, classNameStr);
+            if (text1 != null && text2 != null) {
+                mFloatView.updateDisplay(text1, text2);
+            } else if (text1 != null) {
+                mFloatView.updateText1(text1);
+            } else if (text2 != null) {
+                mFloatView.updateText2(text2);
+            }
     }
 }

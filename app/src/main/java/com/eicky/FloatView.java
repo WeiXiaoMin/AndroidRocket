@@ -18,7 +18,7 @@ import android.widget.Toast;
  */
 public class FloatView extends LinearLayout {
     private Context mContext;
-    private TextView packageName, className;
+    private TextView textView1, textView2;
     private Point downPoint, movePoint;
     private WindowManager mWindowManager;
 
@@ -31,8 +31,8 @@ public class FloatView extends LinearLayout {
 
     private void initView() {
         inflate(mContext, R.layout.float_window, this);
-        packageName = (TextView) findViewById(R.id.package_name);
-        className = (TextView) findViewById(R.id.class_name);
+        textView1 = (TextView) findViewById(R.id.textView1);
+        textView2 = (TextView) findViewById(R.id.textView2);
         findViewById(R.id.close).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -44,9 +44,17 @@ public class FloatView extends LinearLayout {
         });
     }
 
-    public void updateDisplay(String packageNameStr, String classNameStr){
-        packageName.setText(packageNameStr);
-        className.setText(classNameStr);
+    public void updateDisplay(String text1, String text2) {
+        textView1.setText(text1);
+        textView2.setText(text2);
+    }
+
+    public void updateText1(String text1) {
+        textView1.setText(text1);
+    }
+
+    public void updateText2(String text2) {
+        textView2.setText(text2);
     }
 
     @Override

@@ -1,42 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
+    android:background="#80000000"
     android:gravity="center"
-    android:padding="8dp"
-    android:background="#ddaaaaaa">
+    android:orientation="horizontal">
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center">
+        android:gravity="center"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/package_name"
+            android:id="@+id/textView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="packageName"
-            android:textSize="14sp"
-            android:textColor="#555555"/>
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            tools:text="Activity" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1px"
-            android:layout_marginTop="8dp"
-            android:background="#777777"/>
+            android:background="@android:color/white" />
 
         <TextView
-            android:id="@+id/class_name"
+            android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="ClassName"
-            android:textSize="18sp"
-            android:textColor="#333333"/>
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            tools:text="viewId" />
 
     </LinearLayout>
 
@@ -44,7 +41,7 @@
         android:id="@+id/close"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:layout_marginLeft="8dp"
-        android:src="@mipmap/close"/>
+        android:layout_gravity="top|right"
+        android:src="@mipmap/close" />
 
 </LinearLayout>

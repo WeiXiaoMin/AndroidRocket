@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.eicky.OtherFunctionsActivity">
+
+    <android.support.v7.widget.AppCompatEditText
+        android:id="@+id/et_activity_uri"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="输入uri"
+        android:inputType="textUri"
+        tools:ignore="HardcodedText" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btn_to_activity_by_uri"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="测试uri跳转"
+        tools:ignore="HardcodedText" />
+
+</LinearLayout>

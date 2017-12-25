@@ -53,20 +53,21 @@ public class TrackerService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
 
-        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            String packageNameStr = event.getPackageName().toString();
+        int eventType = event.getEventType();
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+//            String packageNameStr = event.getPackageName().toString();
             String classNameStr = event.getClassName().toString();
             Log.i(TAG, "==state==:" + classNameStr);
 
-            if (classNameStr.startsWith(packageNameStr)) {
-                classNameStr = classNameStr.substring(packageNameStr.length());
-            }
+//            if (classNameStr.startsWith(packageNameStr)) {
+//                classNameStr = classNameStr.substring(packageNameStr.length());
+//            }
             if (mFloatWindowUtils != null) {
                 mFloatWindowUtils.updateDisplay(classNameStr, null);
             }
 
-        } else if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED
-                || event.getEventType() == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED) {
+        } else if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED
+                || eventType == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED) {
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
                 AccessibilityNodeInfo source = event.getSource();

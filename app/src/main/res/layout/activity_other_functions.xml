@@ -7,11 +7,27 @@
     android:orientation="vertical"
     tools:context="com.eicky.OtherFunctionsActivity">
 
-    <android.support.v7.widget.AppCompatEditText
-        android:id="@+id/et_activity_uri"
+    <AutoCompleteTextView
+        android:id="@+id/et_activity_host"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="输入uri"
+        android:hint="输入scheme和host,如：http://www.baidu.com"
+        android:inputType="textUri"
+        tools:ignore="HardcodedText" />
+
+    <AutoCompleteTextView
+        android:id="@+id/et_activity_path"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="输入path，如：/baidu"
+        android:inputType="textUri"
+        tools:ignore="HardcodedText" />
+
+    <AutoCompleteTextView
+        android:id="@+id/et_activity_query"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="输入query，如：?wd=android"
         android:inputType="textUri"
         tools:ignore="HardcodedText" />
 

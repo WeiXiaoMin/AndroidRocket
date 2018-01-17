@@ -149,9 +149,11 @@ public class OtherFunctionsActivity extends AppCompatActivity {
         }
 
         void add(String uri) {
-            if (list.contains(uri) && list.indexOf(uri) > 0) {
-                list.remove(uri);
-                list.add(0, uri);
+            if (list.contains(uri)) {
+                if (list.indexOf(uri) > 0) {
+                    list.remove(uri);
+                    list.add(0, uri);
+                }
                 return;
             }
             while (list.size() >= limitCount) {

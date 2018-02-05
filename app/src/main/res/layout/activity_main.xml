@@ -16,6 +16,7 @@
         tools:ignore="ContentDescription" />
 
     <CheckBox
+        android:id="@+id/cb_filterClassName"
         android:layout_gravity="left"
         android:text="(第一项)只显示含Activity、Fragment或Dialog的classNem"
         android:layout_width="wrap_content"

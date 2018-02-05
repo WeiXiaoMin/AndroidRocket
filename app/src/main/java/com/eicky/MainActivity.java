@@ -9,6 +9,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,6 +34,12 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, TrackerService.class);
                 intent.putExtra(TrackerService.TYPE_KEY, TrackerService.Type.CLOSE.code);
                 MainActivity.this.startService(intent);
+            }
+        });
+        ((CheckBox)findViewById(R.id.cb_filterClassName)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                TrackerService.setFilterClassName(isChecked);
             }
         });
     }

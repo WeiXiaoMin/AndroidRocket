@@ -62,7 +62,8 @@ public class TrackerService extends AccessibilityService {
 //            if (classNameStr.startsWith(packageNameStr)) {
 //                classNameStr = classNameStr.substring(packageNameStr.length());
 //            }
-            if (mFloatWindowUtils != null) {
+            if (mFloatWindowUtils != null && !TextUtils.isEmpty(classNameStr)
+                    && (classNameStr.contains("Activity") || classNameStr.contains("Fragment") || classNameStr.contains("Dialog"))) {
                 mFloatWindowUtils.updateDisplay(classNameStr, null);
             }
 

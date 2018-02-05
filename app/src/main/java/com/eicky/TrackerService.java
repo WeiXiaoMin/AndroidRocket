@@ -19,6 +19,7 @@ public class TrackerService extends AccessibilityService {
     private FloatWindowUtils mFloatWindowUtils;
     private final String TAG = "Eicky";
     private int type;
+    private static boolean mFilterClassName = false;
 
     public enum Type {
         OPEN(1), CLOSE(0);
@@ -62,9 +63,15 @@ public class TrackerService extends AccessibilityService {
 //            if (classNameStr.startsWith(packageNameStr)) {
 //                classNameStr = classNameStr.substring(packageNameStr.length());
 //            }
-            if (mFloatWindowUtils != null && !TextUtils.isEmpty(classNameStr)
-                    && (classNameStr.contains("Activity") || classNameStr.contains("Fragment") || classNameStr.contains("Dialog"))) {
-                mFloatWindowUtils.updateDisplay(classNameStr, null);
+            if (mFloatWindowUtils != null) {
+                if (mFilterClassName) {
+                    if (!TextUtils.isEmpty(classNameStr) && (classNameStr.contains("Activity")
+                            || classNameStr.contains("Fragment") || classNameStr.contains("Dialog"))) {
+                        mFloatWindowUtils.updateDisplay(classNameStr, null);
+                    }
+                } else {
+                    mFloatWindowUtils.updateDisplay(classNameStr, null);
+                }
             }
 
         } else if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED
@@ -114,5 +121,13 @@ public class TrackerService extends AccessibilityService {
     @Override
     public void onInterrupt() {
 
+    }
+
+    public static void setFilterClassName(boolean filter) {
+        mFilterClassName = filter;
+    }
+
+    public static boolean isFilterClassName() {
+        return mFilterClassName;
     }
 }

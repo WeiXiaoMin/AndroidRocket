@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,7 +12,16 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@mipmap/header_1"/>
+        android:src="@mipmap/header_1"
+        tools:ignore="ContentDescription" />
+
+    <CheckBox
+        android:layout_gravity="left"
+        android:text="(第一项)只显示含Activity、Fragment或Dialog的classNem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:ignore="HardcodedText,RtlHardcoded" />
+
     <Button
         android:id="@+id/open"
         android:layout_marginTop="20dp"
@@ -19,7 +29,8 @@
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
         android:textColor="@android:color/white"
-        android:text="开启悬浮窗"/>
+        android:text="开启悬浮窗"
+        tools:ignore="HardcodedText" />
     <Button
         android:id="@+id/close"
         android:layout_marginTop="20dp"
@@ -27,5 +38,6 @@
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
         android:textColor="@android:color/white"
-        android:text="关闭悬浮窗"/>
+        android:text="关闭悬浮窗"
+        tools:ignore="HardcodedText" />
 </LinearLayout>

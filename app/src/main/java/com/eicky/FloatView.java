@@ -3,6 +3,7 @@ package com.eicky;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Point;
+import android.support.annotation.Nullable;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -76,5 +77,11 @@ public class FloatView extends LinearLayout {
                 break;
         }
         return false;
+    }
+
+    @Override
+    public void setOnClickListener(@Nullable OnClickListener l) {
+        textView1.setOnClickListener(l);
+        textView2.setOnClickListener(l);
     }
 }

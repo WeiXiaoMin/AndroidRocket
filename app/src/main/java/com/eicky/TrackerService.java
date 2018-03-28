@@ -2,8 +2,10 @@ package com.eicky;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.Intent;
+import android.graphics.Rect;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
-import android.text.style.TtsSpan;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -32,20 +34,31 @@ public class TrackerService extends AccessibilityService {
     }
 
     @Override
-    protected void onServiceConnected() {
-        super.onServiceConnected();
-    }
-
-    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (mFloatWindowUtils == null)
-            mFloatWindowUtils = new FloatWindowUtils(getApplicationContext());
         type = intent.getIntExtra(TYPE_KEY, -1);
         if (type != -1) {
             if (type == Type.OPEN.code) {
-                mFloatWindowUtils.addFloatView();
+                if (mFloatWindowUtils == null) {
+                    mFloatWindowUtils = new FloatWindowUtils(getApplicationContext());
+                    mFloatWindowUtils.setInteractor(new FloatWindowUtils.Interactor() {
+                        @Override
+                        public void onSimpleViewShow() {
+
+                        }
+
+                        @Override
+                        public void onNodeInfoViewShow() {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                                showNodeInfo();
+                            }
+                        }
+                    });
+                }
+                mFloatWindowUtils.showSimpleInfoView();
             } else if (type == Type.CLOSE.code) {
-                mFloatWindowUtils.removeFloatView();
+                if (mFloatWindowUtils != null) {
+                    mFloatWindowUtils.removeFloatView();
+                }
             }
         }
         return super.onStartCommand(intent, flags, startId);
@@ -56,15 +69,11 @@ public class TrackerService extends AccessibilityService {
 
         int eventType = event.getEventType();
         if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-//            String packageNameStr = event.getPackageName().toString();
-            String classNameStr = event.getClassName().toString();
-            Log.i(TAG, "==state==:" + classNameStr);
 
-//            if (classNameStr.startsWith(packageNameStr)) {
-//                classNameStr = classNameStr.substring(packageNameStr.length());
-//            }
+            // 浮窗显示信息
             if (mFloatWindowUtils != null) {
-                if (mFilterClassName) {
+                String classNameStr = event.getClassName().toString();
+                if (isFilterClassName()) {
                     if (!TextUtils.isEmpty(classNameStr) && (classNameStr.contains("Activity")
                             || classNameStr.contains("Fragment") || classNameStr.contains("Dialog"))) {
                         mFloatWindowUtils.updateDisplay(classNameStr, null);
@@ -72,12 +81,13 @@ public class TrackerService extends AccessibilityService {
                 } else {
                     mFloatWindowUtils.updateDisplay(classNameStr, null);
                 }
+//                Log.i(TAG, "onAccessibilityEvent: classNameStr = " + classNameStr);
             }
 
         } else if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED
                 || eventType == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED) {
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                 AccessibilityNodeInfo source = event.getSource();
                 StringBuilder sb = new StringBuilder();
                 String idName = source.getViewIdResourceName();
@@ -87,14 +97,16 @@ public class TrackerService extends AccessibilityService {
                         int index = 0;
                         do {
                             AccessibilityNodeInfo child = source.getChild(index);
-                            String name = child.getViewIdResourceName();
-                            if (!TextUtils.isEmpty(name)) {
-                                sb.append("child:");
-                                sb.append(child.getClassName());
-                                sb.append("\n");
-                                sb.append("viewId:");
-                                sb.append(name);
-                                break;
+                            if (child != null) {
+                                String name = child.getViewIdResourceName();
+                                if (!TextUtils.isEmpty(name)) {
+                                    sb.append("child:");
+                                    sb.append(child.getClassName());
+                                    sb.append("\n");
+                                    sb.append("viewId:");
+                                    sb.append(name);
+                                    break;
+                                }
                             }
                             index++;
                         } while (index < childCount);
@@ -113,7 +125,7 @@ public class TrackerService extends AccessibilityService {
                 if (mFloatWindowUtils != null) {
                     mFloatWindowUtils.updateDisplay(null, sb.toString());
                 }
-                Log.i(TAG, "==click==:" + sb.toString());
+//                Log.i(TAG, "==click==:" + sb.toString());
             }
         }
     }
@@ -121,6 +133,33 @@ public class TrackerService extends AccessibilityService {
     @Override
     public void onInterrupt() {
 
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private void showNodeInfo() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            // 获取当前窗口的控件id
+            AccessibilityNodeInfo nodeInfo = getRootInActiveWindow();
+            if (nodeInfo != null) {
+                mFloatWindowUtils.clearNodeInfo();
+                checkoutAllViewId(nodeInfo);
+                mFloatWindowUtils.notifyNodeInfoSetChange();
+            }
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private void checkoutAllViewId(AccessibilityNodeInfo nodeInfo) {
+        if (nodeInfo.getChildCount() == 0) {
+            // 没有子View
+            mFloatWindowUtils.addNodeInfo(nodeInfo);
+        } else {
+            for (int i = 0; i < nodeInfo.getChildCount(); i++) {
+                if (nodeInfo.getChild(i) != null) {
+                    checkoutAllViewId(nodeInfo.getChild(i));
+                }
+            }
+        }
     }
 
     public static void setFilterClassName(boolean filter) {

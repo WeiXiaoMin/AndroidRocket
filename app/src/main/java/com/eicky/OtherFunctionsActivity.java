@@ -130,22 +130,24 @@ public class OtherFunctionsActivity extends AppCompatActivity {
             aCache = ACache.get(context);
             this.key = key;
             this.limitCount = limitCount;
-            JSONArray jsonArray = aCache.getAsJSONArray(key);
-
             list = new LinkedList<>();
-            if (jsonArray != null) {
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    String str = null;
-                    try {
-                        str = jsonArray.getString(i);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    if (str != null) {
-                        list.add(str);
+            if (!TextUtils.isEmpty(key)){
+                JSONArray jsonArray = aCache.getAsJSONArray(key);
+                if (jsonArray != null) {
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        String str = null;
+                        try {
+                            str = jsonArray.getString(i);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        if (str != null) {
+                            list.add(str);
+                        }
                     }
                 }
             }
+
         }
 
         void add(String uri) {

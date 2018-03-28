@@ -82,6 +82,5 @@ public class FloatView extends LinearLayout {
     @Override
     public void setOnClickListener(@Nullable OnClickListener l) {
         textView1.setOnClickListener(l);
-        textView2.setOnClickListener(l);
     }
 }

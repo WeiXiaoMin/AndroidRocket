@@ -8,4 +8,9 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="GreenButton" parent="AppTheme">
+        <item name="colorButtonNormal">@android:color/holo_green_dark</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
 </resources>

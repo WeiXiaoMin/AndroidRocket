@@ -33,7 +33,7 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
-        <activity android:name=".OtherFunctionsActivity"></activity>
+        <activity android:name=".UrisActivity"></activity>
     </application>
 
 </manifest>

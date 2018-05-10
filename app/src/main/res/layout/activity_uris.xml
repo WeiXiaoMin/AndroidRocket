@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.eicky.OtherFunctionsActivity">
+    tools:context="com.eicky.UrisActivity">
 
     <AutoCompleteTextView
         android:id="@+id/et_activity_host"
@@ -31,11 +31,33 @@
         android:inputType="textUri"
         tools:ignore="HardcodedText" />
 
-    <android.support.v7.widget.AppCompatButton
-        android:id="@+id/btn_to_activity_by_uri"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="测试uri跳转"
-        tools:ignore="HardcodedText" />
+        android:orientation="horizontal"
+        android:weightSum="4">
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/btn_to_activity_by_uri"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:text="uri跳转"
+            android:theme="@style/GreenButton"
+            tools:ignore="HardcodedText" />
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/btn_save"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="保存"
+            tools:ignore="HardcodedText" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
 </LinearLayout>

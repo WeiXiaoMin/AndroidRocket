@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.other) {
-            Intent intent = new Intent(this, OtherFunctionsActivity.class);
+            Intent intent = new Intent(this, UrisActivity.class);
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);

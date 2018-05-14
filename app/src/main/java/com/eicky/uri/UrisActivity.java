@@ -16,6 +16,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
@@ -97,6 +98,7 @@ public class UrisActivity extends AppCompatActivity {
                 mQueryCacheManager.getList());
         mEtActivityQuery.setAdapter(mQueryAdapter);
 
+        // Uri保存
         LinkedList<UriCacheBean> list = mUriCacheManager.getList();
         List<HashMap<String, String>> mapList = new ArrayList<>(list.size());
         for (UriCacheBean bean : list) {
@@ -110,10 +112,29 @@ public class UrisActivity extends AppCompatActivity {
                 android.R.layout.simple_list_item_2,
                 new String[]{"name", "uri"},
                 new int[]{android.R.id.text1, android.R.id.text2}));
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                UriCacheBean bean = mUriCacheManager.get(position);
+                Uri uri = Uri.parse(bean.uri);
+                String text1 = uri.getScheme() + uri.getHost();
+                String text2 = uri.getPath();
+                String text3 = uri.getQuery();
+                if (!TextUtils.isEmpty(text1)) {
+                    mEtActivityHost.setText(text1);
+                }
+                if (!TextUtils.isEmpty(text2)) {
+                    mEtActivityPath.setText(text1);
+                }
+                if (!TextUtils.isEmpty(text3)) {
+                    mEtActivityQuery.setText(text1);
+                }
+            }
+        });
     }
 
     private void cacheUriBean() {
-        // TODO-WXM: 2018/5/10 保存uri
         final String uriStr = mEtActivityHost.getText().toString().trim() +
                 mEtActivityPath.getText().toString().trim() +
                 mEtActivityQuery.getText().toString().trim();
@@ -124,7 +145,7 @@ public class UrisActivity extends AppCompatActivity {
         EditTextDialogFragment fragment = EditTextDialogFragment.newInstance(uriStr, new EditTextDialogFragment.Interactor() {
             @Override
             public void onCacelClick(EditTextDialogFragment fragment, String uri) {
-
+                // 忽略
             }
 
             @Override

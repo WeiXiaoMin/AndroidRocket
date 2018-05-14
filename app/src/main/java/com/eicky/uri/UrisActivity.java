@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -51,7 +52,8 @@ public class UrisActivity extends AppCompatActivity {
     private ArrayAdapter<String> mPathAdapter;
     private ArrayAdapter<String> mQueryAdapter;
     private Toast mToast;
-    private ListView listView;
+    private BaseAdapter mUriCacheAdapter;
+    private List<HashMap<String, String>> mUriCacheList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,12 +63,12 @@ public class UrisActivity extends AppCompatActivity {
         mHostCacheManager = new CacheManager<>(this, "uri_scheme_and_host", 20);
         mPathCacheManager = new CacheManager<>(this, "uri_path", 20);
         mQueryCacheManager = new CacheManager<>(this, "uri_query", 20);
-        mUriCacheManager = new CacheManager<>(this, "uri_bean", 50);
+        mUriCacheManager = new CacheManager<>(this, "uri_bean", 100, getFilesDir());
 
         mEtActivityHost = (AutoCompleteTextView) findViewById(R.id.et_activity_host);
         mEtActivityPath = (AutoCompleteTextView) findViewById(R.id.et_activity_path);
         mEtActivityQuery = (AutoCompleteTextView) findViewById(R.id.et_activity_query);
-        listView = (ListView) findViewById(R.id.listView);
+        ListView listView = (ListView) findViewById(R.id.listView);
 
         findViewById(R.id.btn_to_activity_by_uri).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -99,19 +101,38 @@ public class UrisActivity extends AppCompatActivity {
         mEtActivityQuery.setAdapter(mQueryAdapter);
 
         // Uri保存
-        LinkedList<UriCacheBean> list = mUriCacheManager.getList();
-        List<HashMap<String, String>> mapList = new ArrayList<>(list.size());
-        for (UriCacheBean bean : list) {
-            HashMap<String, String> map = new HashMap<>(2);
-            map.put("name", bean.name);
-            map.put("uri", bean.uri);
-            mapList.add(map);
-        }
-        listView.setAdapter(new SimpleAdapter(this,
-                mapList,
-                android.R.layout.simple_list_item_2,
-                new String[]{"name", "uri"},
-                new int[]{android.R.id.text1, android.R.id.text2}));
+        mUriCacheAdapter = new BaseAdapter() {
+
+            @Override
+            public int getCount() {
+                return mUriCacheManager.getList().size();
+            }
+
+            @Override
+            public Object getItem(int position) {
+                return mUriCacheManager.get(position);
+            }
+
+            @Override
+            public long getItemId(int position) {
+                return 0;
+            }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                if (convertView == null) {
+                    convertView = View.inflate(UrisActivity.this, android.R.layout.simple_list_item_2, parent);
+                }
+                TextView tv1 = (TextView) convertView.findViewById(android.R.id.text1);
+                TextView tv2 = (TextView) convertView.findViewById(android.R.id.text2);
+                UriCacheBean bean = mUriCacheManager.get(position);
+                tv1.setText(bean.name);
+                tv2.setText(bean.uri);
+                return convertView;
+            }
+        };
+
+        listView.setAdapter(mUriCacheAdapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -151,6 +172,7 @@ public class UrisActivity extends AppCompatActivity {
             @Override
             public void onOkClick(EditTextDialogFragment fragment, String uri, String description) {
                 mUriCacheManager.add(new UriCacheBean(description, uri));
+                mUriCacheAdapter.notifyDataSetChanged();
             }
         });
         fragment.show(getSupportFragmentManager(), "uri_description_edit_dialog");
@@ -213,9 +235,14 @@ public class UrisActivity extends AppCompatActivity {
         String name;
         String uri;
 
-        public UriCacheBean(String name, String uri) {
+        UriCacheBean(String name, String uri) {
             this.name = name;
             this.uri = uri;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj != null && obj instanceof UriCacheBean && TextUtils.equals(this.uri, ((UriCacheBean) obj).uri);
         }
     }
 }

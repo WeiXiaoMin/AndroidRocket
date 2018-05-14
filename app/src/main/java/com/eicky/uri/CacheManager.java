@@ -1,12 +1,14 @@
 package com.eicky.uri;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.eicky.ACache;
 
 import org.json.JSONArray;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,7 +25,16 @@ public class CacheManager<T extends Serializable> {
     private LinkedList<T> list;
 
     CacheManager(Context context, String key, int limitCount) {
-        aCache = ACache.get(context);
+        this(context, key, limitCount, null);
+    }
+
+    CacheManager(Context context, String key, int limitCount, @Nullable File cacheDir) {
+        if (cacheDir == null) {
+            aCache = ACache.get(context);
+        } else {
+            aCache = ACache.get(cacheDir);
+        }
+
         this.key = key;
         this.limitCount = limitCount;
         list = new LinkedList<>();

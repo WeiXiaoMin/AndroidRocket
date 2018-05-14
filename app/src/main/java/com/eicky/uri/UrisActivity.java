@@ -1,20 +1,38 @@
-package com.eicky;
+package com.eicky.uri;
 
+import android.app.DialogFragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.eicky.ACache;
+import com.eicky.R;
 
 import org.json.JSONArray;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,7 +60,7 @@ public class UrisActivity extends AppCompatActivity {
         mHostCacheManager = new CacheManager<>(this, "uri_scheme_and_host", 20);
         mPathCacheManager = new CacheManager<>(this, "uri_path", 20);
         mQueryCacheManager = new CacheManager<>(this, "uri_query", 20);
-        mUriCacheManager = new CacheManager<>(this,"uri_bean", 50);
+        mUriCacheManager = new CacheManager<>(this, "uri_bean", 50);
 
         mEtActivityHost = (AutoCompleteTextView) findViewById(R.id.et_activity_host);
         mEtActivityPath = (AutoCompleteTextView) findViewById(R.id.et_activity_path);
@@ -79,17 +97,48 @@ public class UrisActivity extends AppCompatActivity {
                 mQueryCacheManager.getList());
         mEtActivityQuery.setAdapter(mQueryAdapter);
 
-
+        LinkedList<UriCacheBean> list = mUriCacheManager.getList();
+        List<HashMap<String, String>> mapList = new ArrayList<>(list.size());
+        for (UriCacheBean bean : list) {
+            HashMap<String, String> map = new HashMap<>(2);
+            map.put("name", bean.name);
+            map.put("uri", bean.uri);
+            mapList.add(map);
+        }
+        listView.setAdapter(new SimpleAdapter(this,
+                mapList,
+                android.R.layout.simple_list_item_2,
+                new String[]{"name", "uri"},
+                new int[]{android.R.id.text1, android.R.id.text2}));
     }
 
     private void cacheUriBean() {
         // TODO-WXM: 2018/5/10 保存uri
+        final String uriStr = mEtActivityHost.getText().toString().trim() +
+                mEtActivityPath.getText().toString().trim() +
+                mEtActivityQuery.getText().toString().trim();
+        if (TextUtils.isEmpty(uriStr)) {
+            Toast.makeText(this, "色即是空，空即是色", Toast.LENGTH_SHORT).show();
+        }
+
+        EditTextDialogFragment fragment = EditTextDialogFragment.newInstance(uriStr, new EditTextDialogFragment.Interactor() {
+            @Override
+            public void onCacelClick(EditTextDialogFragment fragment, String uri) {
+
+            }
+
+            @Override
+            public void onOkClick(EditTextDialogFragment fragment, String uri, String description) {
+                mUriCacheManager.add(new UriCacheBean(description, uri));
+            }
+        });
+        fragment.show(getSupportFragmentManager(), "uri_description_edit_dialog");
     }
 
     private void gotoUri() {
-        final String host = mEtActivityHost.getText().toString();
-        final String path = mEtActivityPath.getText().toString();
-        final String query = mEtActivityQuery.getText().toString();
+        final String host = mEtActivityHost.getText().toString().trim();
+        final String path = mEtActivityPath.getText().toString().trim();
+        final String query = mEtActivityQuery.getText().toString().trim();
         if (TextUtils.isEmpty(host)) {
             showToast("scheme和host不能为空");
             return;
@@ -136,65 +185,16 @@ public class UrisActivity extends AppCompatActivity {
         mHostCacheManager.executeCache();
         mPathCacheManager.executeCache();
         mQueryCacheManager.executeCache();
+        mUriCacheManager.executeCache();
     }
 
-    private static final class CacheManager<T extends Serializable> {
-        private final String key;
-        private final int limitCount;
-        private final ACache aCache;
-        private LinkedList<T> list;
-
-        CacheManager(Context context, String key, int limitCount) {
-            aCache = ACache.get(context);
-            this.key = key;
-            this.limitCount = limitCount;
-            list = new LinkedList<>();
-            if (!TextUtils.isEmpty(key)) {
-                Object object = aCache.getAsObject(key);
-                if (object != null) {
-                    if (object instanceof List) {
-                        try {
-                            List<T> objs = (List<T>) object;
-                            this.list.addAll(objs);
-                        } catch (ClassCastException e) {
-                            aCache.remove(key);
-                        }
-                    }
-                }
-            }
-        }
-
-        void add(T t) {
-            if (list.contains(t)) {
-                if (list.indexOf(t) > 0) {
-                    list.remove(t);
-                    list.add(0, t);
-                }
-                return;
-            }
-            while (list.size() >= limitCount) {
-                int index = list.size() - 1;
-                list.remove(index);
-            }
-            list.add(0, t);
-        }
-
-        T get(int index) {
-            return list.get(index);
-        }
-
-        LinkedList<T> getList() {
-            return list;
-        }
-
-        void executeCache() {
-            JSONArray jsonArray = new JSONArray(list);
-            aCache.put(key, jsonArray);
-        }
-    }
-
-    private static final class UriCacheBean implements Serializable{
+    private static final class UriCacheBean implements Serializable {
         String name;
         String uri;
+
+        public UriCacheBean(String name, String uri) {
+            this.name = name;
+            this.uri = uri;
+        }
     }
 }

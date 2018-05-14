@@ -13,6 +13,8 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 
+import com.eicky.uri.UrisActivity;
+
 public class MainActivity extends AppCompatActivity {
     private final int PERMISSION_CODE = 1;
 

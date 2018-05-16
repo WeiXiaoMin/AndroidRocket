@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
-        if (itemId == R.id.other) {
+        if (itemId == R.id.uri) {
             Intent intent = new Intent(this, UrisActivity.class);
             startActivity(intent);
         }

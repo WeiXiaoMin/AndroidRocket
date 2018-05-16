@@ -1,45 +1,45 @@
 package com.eicky.uri;
 
-import android.app.DialogFragment;
-import android.content.Context;
+import android.Manifest;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.eicky.ACache;
 import com.eicky.R;
+import com.eicky.util.GetPathFromUri4kitkat;
+import com.eicky.util.PermissionHelper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONArray;
-
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
-public class UrisActivity extends AppCompatActivity {
-    private static final String TAG = "UrisActivity";
+public final class UrisActivity extends AppCompatActivity {
+    public static final String KEY_DIR_OF_LAST_FILE = "dir_of_last_file";
+    public static final int REQUEST_CODE_OPEN_FILE = 1;
+    public static final int REQUEST_CODE_READ_PERMISSION = 1;
 
     private AutoCompleteTextView mEtActivityHost;
     private AutoCompleteTextView mEtActivityPath;
@@ -54,11 +54,14 @@ public class UrisActivity extends AppCompatActivity {
     private Toast mToast;
     private BaseAdapter mUriCacheAdapter;
     private List<HashMap<String, String>> mUriCacheList;
+    private PermissionHelper mPermissionHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_uris);
+
+        mPermissionHelper = new PermissionHelper(this, REQUEST_CODE_READ_PERMISSION, Manifest.permission.READ_EXTERNAL_STORAGE);
 
         mHostCacheManager = new CacheManager<>(this, "uri_scheme_and_host", 20);
         mPathCacheManager = new CacheManager<>(this, "uri_path", 20);
@@ -121,7 +124,7 @@ public class UrisActivity extends AppCompatActivity {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {
-                    convertView = View.inflate(UrisActivity.this, android.R.layout.simple_list_item_2, parent);
+                    convertView = View.inflate(UrisActivity.this, android.R.layout.simple_list_item_2, null);
                 }
                 TextView tv1 = (TextView) convertView.findViewById(android.R.id.text1);
                 TextView tv2 = (TextView) convertView.findViewById(android.R.id.text2);
@@ -139,18 +142,36 @@ public class UrisActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 UriCacheBean bean = mUriCacheManager.get(position);
                 Uri uri = Uri.parse(bean.uri);
-                String text1 = uri.getScheme() + uri.getHost();
+                String text1 = uri.getScheme() + "://" + uri.getHost();
                 String text2 = uri.getPath();
                 String text3 = uri.getQuery();
                 if (!TextUtils.isEmpty(text1)) {
                     mEtActivityHost.setText(text1);
                 }
                 if (!TextUtils.isEmpty(text2)) {
-                    mEtActivityPath.setText(text1);
+                    mEtActivityPath.setText(text2);
                 }
                 if (!TextUtils.isEmpty(text3)) {
-                    mEtActivityQuery.setText(text1);
+                    mEtActivityQuery.setText(text3);
                 }
+            }
+        });
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                new AlertDialog.Builder(UrisActivity.this)
+                        .setTitle("删除数据")
+                        .setMessage("是否删除该条数据？")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mUriCacheManager.remove(position);
+                                mUriCacheAdapter.notifyDataSetChanged();
+                            }
+                        })
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
+                return true;
             }
         });
     }
@@ -211,7 +232,104 @@ public class UrisActivity extends AppCompatActivity {
         }
     }
 
-    public void showToast(CharSequence text) {
+    private void openFile() {
+        // TODO-WXM: 2018/5/16 适配Android 7.0
+//        SharedPreferences sp = getSharedPreferences(Config.SHARED_PREFERENCES_NAME, MODE_PRIVATE);
+//        String dirOfLastFile = sp.getString(KEY_DIR_OF_LAST_FILE, "");
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//        intent.setDataAndType(Uri.parse(dirOfLastFile), "text/*");
+        intent.setType("text/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(intent, REQUEST_CODE_OPEN_FILE);
+    }
+
+    private void readFile(File file) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            FileReader reader = new FileReader(file);
+            char[] cs = new char[1024];
+            int len = 0;
+            while ((len = reader.read(cs)) != -1) {
+                sb.append(cs, 0, len);
+            }
+            String json = sb.toString();
+            int dataLenght = 0;
+            if (!TextUtils.isEmpty(json)) {
+                List<UriCacheBean> list = new Gson().fromJson(json, new TypeToken<List<UriCacheBean>>() {
+                }.getType());
+                if (list != null && !list.isEmpty()) {
+                    dataLenght = list.size();
+                    mUriCacheManager.addAll(list);
+                    mUriCacheAdapter.notifyDataSetChanged();
+                }
+            }
+            Toast.makeText(this,
+                    String.format(Locale.getDefault(), "读取完毕,读取到%d条数据", dataLenght),
+                    Toast.LENGTH_SHORT).show();
+        } catch (FileNotFoundException e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_uri, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.readFile) {
+            mPermissionHelper.execute(new PermissionHelper.DialogTipsCallback(this) {
+                @Override
+                public String getTips(String[] permissions) {
+                    return "需要授予读取文件的权限";
+                }
+
+                @Override
+                public void result(boolean granted) {
+                    if (granted) {
+                        openFile();
+                    } else {
+                        Toast.makeText(UrisActivity.this, "取消操作", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (REQUEST_CODE_OPEN_FILE == requestCode && Activity.RESULT_OK == resultCode) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                String path = GetPathFromUri4kitkat.getPath(this, uri);
+                if (!TextUtils.isEmpty(path)) {
+                    File file = new File(path);
+//                    cacheLastOpenFile(file);
+                    readFile(file);
+                }
+            }
+        }
+    }
+
+//    private void cacheLastOpenFile(File file) {
+//        File dir;
+//        if (file.isDirectory()) {
+//            dir = file;
+//        } else {
+//            dir = file.getParentFile();
+//        }
+//        SharedPreferences sp = getSharedPreferences(Config.SHARED_PREFERENCES_NAME, MODE_PRIVATE);
+//        sp.edit().putString(KEY_DIR_OF_LAST_FILE, Uri.fromFile(dir).toString()).apply();
+//    }
+
+    private void showToast(CharSequence text) {
         if (mToast == null) {
             mToast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
             mToast.show();
@@ -231,7 +349,7 @@ public class UrisActivity extends AppCompatActivity {
         mUriCacheManager.executeCache();
     }
 
-    private static final class UriCacheBean implements Serializable {
+    public static final class UriCacheBean implements Serializable {
         String name;
         String uri;
 

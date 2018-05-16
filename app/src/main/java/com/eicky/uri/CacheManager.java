@@ -1,12 +1,11 @@
 package com.eicky.uri;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import com.eicky.ACache;
-
-import org.json.JSONArray;
+import com.eicky.util.ACache;
 
 import java.io.File;
 import java.io.Serializable;
@@ -45,6 +44,9 @@ public class CacheManager<T extends Serializable> {
                     try {
                         List<T> objs = (List<T>) object;
                         this.list.addAll(objs);
+                        while (limitCount < this.list.size()) {
+                            this.list.removeLast();
+                        }
                     } catch (ClassCastException e) {
                         aCache.remove(key);
                     }
@@ -53,7 +55,7 @@ public class CacheManager<T extends Serializable> {
         }
     }
 
-    void add(T t) {
+    void add(@NonNull T t) {
         if (list.contains(t)) {
             if (list.indexOf(t) > 0) {
                 list.remove(t);
@@ -68,6 +70,18 @@ public class CacheManager<T extends Serializable> {
         list.add(0, t);
     }
 
+    void remove(int index) {
+        if (index > 0 && index < list.size()) {
+            list.remove(index);
+        }
+    }
+
+    void addAll(@NonNull List<T> list) {
+        for (T t : list) {
+            add(t);
+        }
+    }
+
     T get(int index) {
         return list.get(index);
     }
@@ -77,7 +91,6 @@ public class CacheManager<T extends Serializable> {
     }
 
     void executeCache() {
-        JSONArray jsonArray = new JSONArray(list);
-        aCache.put(key, jsonArray);
+        aCache.put(key, list);
     }
 }

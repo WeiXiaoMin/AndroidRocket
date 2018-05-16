@@ -144,7 +144,7 @@ public final class UrisActivity extends AppCompatActivity {
                 Uri uri = Uri.parse(bean.uri);
                 String text1 = uri.getScheme() + "://" + uri.getHost();
                 String text2 = uri.getPath();
-                String text3 = uri.getQuery();
+                String text3 = "?" + uri.getQuery();
                 if (!TextUtils.isEmpty(text1)) {
                     mEtActivityHost.setText(text1);
                 }

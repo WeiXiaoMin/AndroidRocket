@@ -17,6 +17,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,7 +40,7 @@ import java.util.Locale;
 public final class UrisActivity extends AppCompatActivity {
     public static final String KEY_DIR_OF_LAST_FILE = "dir_of_last_file";
     public static final int REQUEST_CODE_OPEN_FILE = 1;
-    public static final int REQUEST_CODE_READ_PERMISSION = 1;
+    public static final int REQUEST_CODE_WRITE_PERMISSION = 1;
 
     private AutoCompleteTextView mEtActivityHost;
     private AutoCompleteTextView mEtActivityPath;
@@ -61,7 +62,7 @@ public final class UrisActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_uris);
 
-        mPermissionHelper = new PermissionHelper(this, REQUEST_CODE_READ_PERMISSION, Manifest.permission.READ_EXTERNAL_STORAGE);
+        mPermissionHelper = new PermissionHelper(this, REQUEST_CODE_WRITE_PERMISSION, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
         mHostCacheManager = new CacheManager<>(this, "uri_scheme_and_host", 20);
         mPathCacheManager = new CacheManager<>(this, "uri_path", 20);
@@ -141,19 +142,7 @@ public final class UrisActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 UriCacheBean bean = mUriCacheManager.get(position);
-                Uri uri = Uri.parse(bean.uri);
-                String text1 = uri.getScheme() + "://" + uri.getHost();
-                String text2 = uri.getPath();
-                String text3 = "?" + uri.getQuery();
-                if (!TextUtils.isEmpty(text1)) {
-                    mEtActivityHost.setText(text1);
-                }
-                if (!TextUtils.isEmpty(text2)) {
-                    mEtActivityPath.setText(text2);
-                }
-                if (!TextUtils.isEmpty(text3)) {
-                    mEtActivityQuery.setText(text3);
-                }
+                showUri(bean.uri);
             }
         });
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -174,6 +163,22 @@ public final class UrisActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    private void showUri(String uriStr) {
+        Uri uri = Uri.parse(uriStr);
+        String text1 = uri.getScheme() + "://" + uri.getHost();
+        String text2 = uri.getPath() != null ? uri.getPath() : "";
+        String text3 = TextUtils.isEmpty(uri.getQuery()) ? "" : "?" + uri.getQuery();
+        if (!TextUtils.isEmpty(text1)) {
+            mEtActivityHost.setText(text1);
+        }
+        if (!TextUtils.isEmpty(text2)) {
+            mEtActivityPath.setText(text2);
+        }
+        if (!TextUtils.isEmpty(text3)) {
+            mEtActivityQuery.setText(text3);
+        }
     }
 
     private void cacheUriBean() {
@@ -298,8 +303,31 @@ public final class UrisActivity extends AppCompatActivity {
                     }
                 }
             });
+
+        } else if (itemId == R.id.wholeUri) {
+            showWholeUriEditDialog();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showWholeUriEditDialog() {
+        final EditText editText = new EditText(this);
+        editText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        editText.setHint("请输入完整的uri");
+        new AlertDialog.Builder(this)
+                .setView(editText)
+                .setTitle("输入完整uri")
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String text = editText.getText().toString().trim();
+                        if (!TextUtils.isEmpty(text)) {
+                            showUri(text);
+                        }
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     @Override

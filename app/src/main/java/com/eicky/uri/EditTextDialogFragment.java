@@ -1,6 +1,5 @@
 package com.eicky.uri;
 
-import android.app.DialogFragment;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -42,6 +41,7 @@ public final class EditTextDialogFragment extends AppCompatDialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setStyle(AppCompatDialogFragment.STYLE_NO_TITLE, R.style.Theme_AppCompat_Light_Dialog);
         Bundle arguments = getArguments();
         uri = arguments.getString("uri");
     }

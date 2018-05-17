@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.startService(intent);
             }
         });
-        ((CheckBox)findViewById(R.id.cb_filterClassName)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        ((CheckBox) findViewById(R.id.cb_filterClassName)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 TrackerService.setFilterClassName(isChecked);

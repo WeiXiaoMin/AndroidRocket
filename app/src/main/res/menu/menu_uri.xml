@@ -2,9 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
+
+    <item
+        android:id="@+id/wholeUri"
+       android:title="uri完整输入"
+        app:showAsAction="ifRoom"
+        tools:ignore="HardcodedText" />
+
     <item
         android:id="@+id/readFile"
         android:title="从文件中读取"
-        app:showAsAction="ifRoom"
+        app:showAsAction="never"
         tools:ignore="HardcodedText" />
 </menu>

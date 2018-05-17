@@ -33,12 +33,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
 public final class UrisActivity extends AppCompatActivity {
-    public static final String KEY_DIR_OF_LAST_FILE = "dir_of_last_file";
+//    public static final String KEY_DIR_OF_LAST_FILE = "dir_of_last_file";
     public static final int REQUEST_CODE_OPEN_FILE = 1;
     public static final int REQUEST_CODE_WRITE_PERMISSION = 1;
 
@@ -54,7 +53,6 @@ public final class UrisActivity extends AppCompatActivity {
     private ArrayAdapter<String> mQueryAdapter;
     private Toast mToast;
     private BaseAdapter mUriCacheAdapter;
-    private List<HashMap<String, String>> mUriCacheList;
     private PermissionHelper mPermissionHelper;
 
     @Override

@@ -14,4 +14,10 @@
         android:title="从文件中读取"
         app:showAsAction="never"
         tools:ignore="HardcodedText" />
+
+    <item
+        android:id="@+id/outputFile"
+        android:title="导出文件"
+        app:showAsAction="never"
+        tools:ignore="HardcodedText" />
 </menu>

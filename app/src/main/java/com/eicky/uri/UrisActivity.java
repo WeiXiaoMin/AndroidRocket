@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -30,6 +31,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
@@ -37,7 +39,6 @@ import java.util.List;
 import java.util.Locale;
 
 public final class UrisActivity extends AppCompatActivity {
-//    public static final String KEY_DIR_OF_LAST_FILE = "dir_of_last_file";
     public static final int REQUEST_CODE_OPEN_FILE = 1;
     public static final int REQUEST_CODE_WRITE_PERMISSION = 1;
 
@@ -67,6 +68,10 @@ public final class UrisActivity extends AppCompatActivity {
         mQueryCacheManager = new CacheManager<>(this, "uri_query", 20);
         mUriCacheManager = new CacheManager<>(this, "uri_bean", 100, getFilesDir());
 
+        initView();
+    }
+
+    private void initView() {
         mEtActivityHost = (AutoCompleteTextView) findViewById(R.id.et_activity_host);
         mEtActivityPath = (AutoCompleteTextView) findViewById(R.id.et_activity_path);
         mEtActivityQuery = (AutoCompleteTextView) findViewById(R.id.et_activity_query);
@@ -237,10 +242,7 @@ public final class UrisActivity extends AppCompatActivity {
 
     private void openFile() {
         // TODO-WXM: 2018/5/16 适配Android 7.0
-//        SharedPreferences sp = getSharedPreferences(Config.SHARED_PREFERENCES_NAME, MODE_PRIVATE);
-//        String dirOfLastFile = sp.getString(KEY_DIR_OF_LAST_FILE, "");
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-//        intent.setDataAndType(Uri.parse(dirOfLastFile), "text/*");
         intent.setType("text/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(intent, REQUEST_CODE_OPEN_FILE);
@@ -295,6 +297,7 @@ public final class UrisActivity extends AppCompatActivity {
                 @Override
                 public void result(boolean granted) {
                     if (granted) {
+                        // TODO-WXM: 2018/5/24 输入文件名
                         openFile();
                     } else {
                         Toast.makeText(UrisActivity.this, "取消操作", Toast.LENGTH_SHORT).show();
@@ -304,8 +307,28 @@ public final class UrisActivity extends AppCompatActivity {
 
         } else if (itemId == R.id.wholeUri) {
             showWholeUriEditDialog();
+        } else if (itemId == R.id.outputFile) {
+            outputFile(mUriCacheManager.getList());
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void outputFile(List<UriCacheBean> list) {
+        Gson gson = new Gson();
+        String json = gson.toJson(list);
+        File file = getExternalFilesDir("text/*");
+        if (file == null) {
+            File extDir = Environment.getExternalStorageDirectory();
+            if (extDir == null) {
+                showToast("没有外部存储目录，保存失败");
+            }
+            // TODO-WXM: 2018/5/24 导出文件
+        }
+        try {
+            new FileOutputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private void showWholeUriEditDialog() {
@@ -337,23 +360,11 @@ public final class UrisActivity extends AppCompatActivity {
                 String path = GetPathFromUri4kitkat.getPath(this, uri);
                 if (!TextUtils.isEmpty(path)) {
                     File file = new File(path);
-//                    cacheLastOpenFile(file);
                     readFile(file);
                 }
             }
         }
     }
-
-//    private void cacheLastOpenFile(File file) {
-//        File dir;
-//        if (file.isDirectory()) {
-//            dir = file;
-//        } else {
-//            dir = file.getParentFile();
-//        }
-//        SharedPreferences sp = getSharedPreferences(Config.SHARED_PREFERENCES_NAME, MODE_PRIVATE);
-//        sp.edit().putString(KEY_DIR_OF_LAST_FILE, Uri.fromFile(dir).toString()).apply();
-//    }
 
     private void showToast(CharSequence text) {
         if (mToast == null) {

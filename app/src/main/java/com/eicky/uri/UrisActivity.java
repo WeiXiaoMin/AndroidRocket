@@ -44,7 +44,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -395,8 +395,7 @@ public final class UrisActivity extends AppCompatActivity {
             showToast("没有外部存储目录，保存失败");
             return;
         }
-        String date = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
-                .format(new Date());
+        String date = new SimpleDateFormat("yyyyMMddHHmmss",Locale.getDefault()).format(new Date());
         String fileName = "uri_" + date;
 
         final EditText editText = new EditText(this);
@@ -411,7 +410,7 @@ public final class UrisActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String text = editText.getText().toString().trim();
-                        if (!TextUtils.isEmpty(text)) {
+                        if (TextUtils.isEmpty(text)) {
                             Toast.makeText(UrisActivity.this,"文件名不能为空",Toast.LENGTH_SHORT).show();
                             return;
                         }

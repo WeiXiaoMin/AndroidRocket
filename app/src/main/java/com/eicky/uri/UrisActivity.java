@@ -35,6 +35,7 @@ import com.eicky.R;
 import com.eicky.util.GetPathFromUri4kitkat;
 import com.eicky.util.PermissionHelper;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
@@ -316,7 +317,6 @@ public final class UrisActivity extends AppCompatActivity {
                 @Override
                 public void result(boolean granted) {
                     if (granted) {
-                        // TODO-WXM: 2018/5/24 输入文件名
                         openFile();
                     } else {
                         Toast.makeText(UrisActivity.this, "取消操作", Toast.LENGTH_SHORT).show();
@@ -388,16 +388,43 @@ public final class UrisActivity extends AppCompatActivity {
     }
 
     private void outputFile(List<UriCacheBean> list) {
-        Gson gson = new Gson();
-        String json = gson.toJson(list);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        final String json = gson.toJson(list);
         File file = getCustomCacheDir();
         if (file == null) {
             showToast("没有外部存储目录，保存失败");
             return;
         }
+        String date = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+                .format(new Date());
+        String fileName = "uri_" + date;
+
+        final EditText editText = new EditText(this);
+        editText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        editText.setText(fileName);
+
+        final File finalFile = file;
+        new AlertDialog.Builder(this)
+                .setView(editText)
+                .setTitle("输入文件名")
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String text = editText.getText().toString().trim();
+                        if (!TextUtils.isEmpty(text)) {
+                            Toast.makeText(UrisActivity.this,"文件名不能为空",Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        File jsonFile = new File(finalFile, text + ".json");
+                        writeJsonFile(json, jsonFile);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void writeJsonFile(String json, File jsonFile) {
         try {
-            String date = DateFormat.getDateTimeInstance().format(new Date());
-            File jsonFile = new File(file, "uri_" + date);
             FileOutputStream fos = new FileOutputStream(jsonFile);
             fos.write(json.getBytes());
             fos.flush();

@@ -71,9 +71,13 @@ public class CacheManager<T extends Serializable> {
     }
 
     void remove(int index) {
-        if (index > 0 && index < list.size()) {
+        if (index >= 0 && index < list.size()) {
             list.remove(index);
         }
+    }
+
+    void clear() {
+        list.clear();
     }
 
     void addAll(@NonNull List<T> list) {

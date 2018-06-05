@@ -1,6 +1,7 @@
 package com.eicky.uri;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -340,19 +341,35 @@ public final class UrisActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @SuppressLint("SetTextI18n")
     private void showSettingDialog() {
         LinearLayout ll = new LinearLayout(this);
         ll.setOrientation(LinearLayout.VERTICAL);
 
         CheckBox cb1 = new CheckBox(this);
+        cb1.setText("支持fragment");
+        if (mEtActivityFragment.getVisibility() == View.VISIBLE) {
+            cb1.setChecked(true);
+        } else {
+            cb1.setChecked(false);
+        }
         cb1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 mEtActivityFragment.setVisibility(isChecked ? View.VISIBLE : View.GONE);
             }
         });
-
         ll.addView(cb1);
+
+        final Button clearBtn = new Button(this);
+        clearBtn.setText("清空缓存数据");
+        clearBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mUriCacheManager.clear();
+            }
+        });
+        ll.addView(clearBtn);
 
         new AlertDialog.Builder(this)
                 .setView(ll)

@@ -2,6 +2,9 @@ package com.eicky.uri;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -18,7 +21,11 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +42,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -45,10 +54,13 @@ public final class UrisActivity extends AppCompatActivity {
     private AutoCompleteTextView mEtActivityHost;
     private AutoCompleteTextView mEtActivityPath;
     private AutoCompleteTextView mEtActivityQuery;
+    private AutoCompleteTextView mEtActivityFragment;
+
     private CacheManager<String> mHostCacheManager;
     private CacheManager<String> mPathCacheManager;
     private CacheManager<String> mQueryCacheManager;
     private CacheManager<UriCacheBean> mUriCacheManager;
+
     private ArrayAdapter<String> mHostAdapter;
     private ArrayAdapter<String> mPathAdapter;
     private ArrayAdapter<String> mQueryAdapter;
@@ -75,6 +87,7 @@ public final class UrisActivity extends AppCompatActivity {
         mEtActivityHost = (AutoCompleteTextView) findViewById(R.id.et_activity_host);
         mEtActivityPath = (AutoCompleteTextView) findViewById(R.id.et_activity_path);
         mEtActivityQuery = (AutoCompleteTextView) findViewById(R.id.et_activity_query);
+        mEtActivityFragment = (AutoCompleteTextView) findViewById(R.id.et_activity_fragment);
         ListView listView = (ListView) findViewById(R.id.listView);
 
         findViewById(R.id.btn_to_activity_by_uri).setOnClickListener(new View.OnClickListener() {
@@ -173,21 +186,25 @@ public final class UrisActivity extends AppCompatActivity {
         String text1 = uri.getScheme() + "://" + uri.getHost();
         String text2 = uri.getPath() != null ? uri.getPath() : "";
         String text3 = TextUtils.isEmpty(uri.getQuery()) ? "" : "?" + uri.getQuery();
-        if (!TextUtils.isEmpty(text1)) {
-            mEtActivityHost.setText(text1);
-        }
-        if (!TextUtils.isEmpty(text2)) {
-            mEtActivityPath.setText(text2);
-        }
-        if (!TextUtils.isEmpty(text3)) {
-            mEtActivityQuery.setText(text3);
+        String text4 = TextUtils.isEmpty(uri.getFragment()) ? "" : "#" + uri.getFragment();
+        mEtActivityHost.setText(text1);
+        mEtActivityPath.setText(text2);
+        mEtActivityQuery.setText(text3);
+        if (mEtActivityFragment.getVisibility() == View.VISIBLE) {
+            mEtActivityFragment.setText(text4);
         }
     }
 
     private void cacheUriBean() {
+        String fragmentOfUri = "";
+        if (mEtActivityFragment.getVisibility() == View.VISIBLE) {
+            fragmentOfUri = mEtActivityFragment.getText().toString().trim();
+        }
+        mEtActivityFragment.getText().toString().trim();
         final String uriStr = mEtActivityHost.getText().toString().trim() +
                 mEtActivityPath.getText().toString().trim() +
-                mEtActivityQuery.getText().toString().trim();
+                mEtActivityQuery.getText().toString().trim() +
+                fragmentOfUri;
         if (TextUtils.isEmpty(uriStr)) {
             Toast.makeText(this, "色即是空，空即是色", Toast.LENGTH_SHORT).show();
         }
@@ -211,11 +228,13 @@ public final class UrisActivity extends AppCompatActivity {
         final String host = mEtActivityHost.getText().toString().trim();
         final String path = mEtActivityPath.getText().toString().trim();
         final String query = mEtActivityQuery.getText().toString().trim();
+        final String fragment = mEtActivityFragment.getVisibility() == View.VISIBLE ?
+                mEtActivityFragment.getText().toString().trim() : "";
         if (TextUtils.isEmpty(host)) {
             showToast("scheme和host不能为空");
             return;
         }
-        String uri = host + path + query;
+        String uri = host + path + query + fragment;
 
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -309,8 +328,36 @@ public final class UrisActivity extends AppCompatActivity {
             showWholeUriEditDialog();
         } else if (itemId == R.id.outputFile) {
             outputFile(mUriCacheManager.getList());
+        } else if (itemId == R.id.setting) {
+            showSettingDialog();
+        } else if (itemId == R.id.encode_uri) {
+            showEncodeDialog();
+        } else if (itemId == R.id.decode_uri) {
+            showDecodeDialog();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showSettingDialog() {
+        LinearLayout ll = new LinearLayout(this);
+        ll.setOrientation(LinearLayout.VERTICAL);
+
+        CheckBox cb1 = new CheckBox(this);
+        cb1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mEtActivityFragment.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            }
+        });
+
+        ll.addView(cb1);
+
+        new AlertDialog.Builder(this)
+                .setView(ll)
+                .setTitle("当前页面设置")
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+
     }
 
     private void outputFile(List<UriCacheBean> list) {
@@ -322,12 +369,22 @@ public final class UrisActivity extends AppCompatActivity {
             if (extDir == null) {
                 showToast("没有外部存储目录，保存失败");
             }
-            // TODO-WXM: 2018/5/24 导出文件
         }
         try {
-            new FileOutputStream(file);
+            String date = DateFormat.getDateInstance().format(new Date());
+            File jsonFile = new File(file, "uri_" + date);
+            FileOutputStream fos = new FileOutputStream(jsonFile);
+            fos.write(json.getBytes());
+            fos.flush();
+            new AlertDialog.Builder(this)
+                    .setTitle("提示")
+                    .setMessage("保存成功，保存位置：" + jsonFile.getAbsolutePath())
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        } catch (IOException e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -344,6 +401,88 @@ public final class UrisActivity extends AppCompatActivity {
                         String text = editText.getText().toString().trim();
                         if (!TextUtils.isEmpty(text)) {
                             showUri(text);
+                        }
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void showEncodeDialog() {
+        LinearLayout ll = new LinearLayout(this);
+        ll.setOrientation(LinearLayout.VERTICAL);
+
+        final EditText editText = new EditText(this);
+        editText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        editText.setHint("输入需要编码的内容");
+        ll.addView(editText);
+
+        Button button = new Button(this);
+        button.setText("编码");
+        button.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String text = editText.getText().toString().trim();
+                if (!TextUtils.isEmpty(text)) {
+                    String encode = Uri.encode(text);
+                    editText.setText(encode);
+                }
+            }
+        });
+        ll.addView(button);
+
+        new AlertDialog.Builder(this)
+                .setView(ll)
+                .setTitle("uri编码")
+                .setPositiveButton("确定并复制", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        String text = editText.getText().toString().trim();
+                        if (!TextUtils.isEmpty(text) && cm != null) {
+                            cm.setPrimaryClip(ClipData.newPlainText(null, text));
+                        }
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void showDecodeDialog() {
+        LinearLayout ll = new LinearLayout(this);
+        ll.setOrientation(LinearLayout.VERTICAL);
+
+        final EditText editText = new EditText(this);
+        editText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        editText.setHint("输入需要解的内容");
+        ll.addView(editText);
+
+        Button button = new Button(this);
+        button.setText("解码");
+        button.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String text = editText.getText().toString().trim();
+                if (!TextUtils.isEmpty(text)) {
+                    String decode = Uri.decode(text);
+                    editText.setText(decode);
+                }
+            }
+        });
+        ll.addView(button);
+
+        new AlertDialog.Builder(this)
+                .setView(ll)
+                .setTitle("uri解码")
+                .setPositiveButton("确定并复制", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        String text = editText.getText().toString().trim();
+                        if (!TextUtils.isEmpty(text) && cm != null) {
+                            cm.setPrimaryClip(ClipData.newPlainText(null, text));
                         }
                     }
                 })

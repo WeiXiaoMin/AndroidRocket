@@ -31,6 +31,15 @@
         android:inputType="textUri"
         tools:ignore="HardcodedText" />
 
+    <AutoCompleteTextView
+        android:id="@+id/et_activity_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="输入fragment，如：#fragment"
+        android:inputType="textUri"
+        android:visibility="gone"
+        tools:ignore="HardcodedText" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

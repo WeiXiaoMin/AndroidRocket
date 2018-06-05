@@ -26,6 +26,12 @@
         app:showAsAction="never"
         tools:ignore="HardcodedText" />
 
+    <item
+        android:id="@+id/openCacheDir"
+        android:title="查看保存目录"
+        app:showAsAction="never"
+        tools:ignore="HardcodedText" />
+
     <item android:id="@+id/encode_uri"
         android:title="Uri编码"
         app:showAsAction="never"

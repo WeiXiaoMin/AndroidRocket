@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -200,7 +201,6 @@ public final class UrisActivity extends AppCompatActivity {
         if (mEtActivityFragment.getVisibility() == View.VISIBLE) {
             fragmentOfUri = mEtActivityFragment.getText().toString().trim();
         }
-        mEtActivityFragment.getText().toString().trim();
         final String uriStr = mEtActivityHost.getText().toString().trim() +
                 mEtActivityPath.getText().toString().trim() +
                 mEtActivityQuery.getText().toString().trim() +
@@ -334,6 +334,8 @@ public final class UrisActivity extends AppCompatActivity {
             showEncodeDialog();
         } else if (itemId == R.id.decode_uri) {
             showDecodeDialog();
+        } else if (itemId == R.id.openCacheDir) {
+            openCustomCacheDir();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -360,25 +362,48 @@ public final class UrisActivity extends AppCompatActivity {
 
     }
 
+    @Nullable
+    private File getCustomCacheDir() {
+        File file = Environment.getExternalStorageDirectory();
+        if (file != null) {
+            file = new File(file, "AndroidRocket");
+            if (!file.exists()) {
+                file.mkdirs();
+            }
+        }
+        return file;
+    }
+
+    private void openCustomCacheDir() {
+        final File dir = getCustomCacheDir();
+        if (dir == null) {
+            showToast("没有外部存储目录，打开失败");
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("提示")
+                .setMessage("保存位置：" + dir.getPath())
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
+
     private void outputFile(List<UriCacheBean> list) {
         Gson gson = new Gson();
         String json = gson.toJson(list);
-        File file = getExternalFilesDir("text/*");
+        File file = getCustomCacheDir();
         if (file == null) {
-            File extDir = Environment.getExternalStorageDirectory();
-            if (extDir == null) {
-                showToast("没有外部存储目录，保存失败");
-            }
+            showToast("没有外部存储目录，保存失败");
+            return;
         }
         try {
-            String date = DateFormat.getDateInstance().format(new Date());
+            String date = DateFormat.getDateTimeInstance().format(new Date());
             File jsonFile = new File(file, "uri_" + date);
             FileOutputStream fos = new FileOutputStream(jsonFile);
             fos.write(json.getBytes());
             fos.flush();
             new AlertDialog.Builder(this)
                     .setTitle("提示")
-                    .setMessage("保存成功，保存位置：" + jsonFile.getAbsolutePath())
+                    .setMessage("保存成功，保存位置：" + jsonFile.getPath())
                     .setPositiveButton(android.R.string.ok, null)
                     .show();
         } catch (FileNotFoundException e) {

@@ -44,6 +44,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -328,7 +329,21 @@ public final class UrisActivity extends AppCompatActivity {
         } else if (itemId == R.id.wholeUri) {
             showWholeUriEditDialog();
         } else if (itemId == R.id.outputFile) {
-            outputFile(mUriCacheManager.getList());
+            mPermissionHelper.execute(new PermissionHelper.DialogTipsCallback(this) {
+                @Override
+                public String getTips(String[] permissions) {
+                    return "需要授予读取文件的权限";
+                }
+
+                @Override
+                public void result(boolean granted) {
+                    if (granted) {
+                        outputFile(mUriCacheManager.getList());
+                    } else {
+                        Toast.makeText(UrisActivity.this, "取消操作", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         } else if (itemId == R.id.setting) {
             showSettingDialog();
         } else if (itemId == R.id.encode_uri) {
@@ -367,6 +382,7 @@ public final class UrisActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mUriCacheManager.clear();
+                mUriCacheAdapter.notifyDataSetChanged();
             }
         });
         ll.addView(clearBtn);
@@ -440,10 +456,13 @@ public final class UrisActivity extends AppCompatActivity {
     }
 
     private void writeJsonFile(String json, File jsonFile) {
+        FileOutputStream fos = null;
+        OutputStreamWriter opsw = null;
         try {
-            FileOutputStream fos = new FileOutputStream(jsonFile);
-            fos.write(json.getBytes());
-            fos.flush();
+            fos = new FileOutputStream(jsonFile);
+            opsw = new OutputStreamWriter(fos, "utf-8");
+            opsw.append(json);
+            opsw.flush();
             new AlertDialog.Builder(this)
                     .setTitle("提示")
                     .setMessage("保存成功，保存位置：" + jsonFile.getPath())
@@ -453,6 +472,19 @@ public final class UrisActivity extends AppCompatActivity {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } catch (IOException e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                }
+            }
+            if (opsw != null) {
+                try {
+                    opsw.close();
+                } catch (IOException e) {
+                }
+            }
         }
     }
 

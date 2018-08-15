@@ -90,9 +90,9 @@ public class TrackerService extends AccessibilityService {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                 AccessibilityNodeInfo source = event.getSource();
                 StringBuilder sb = new StringBuilder();
-                String idName = source.getViewIdResourceName();
+                String idName = source != null ? source.getViewIdResourceName() : "";
                 if (TextUtils.isEmpty(idName)) {
-                    int childCount = source.getChildCount();
+                    int childCount = source != null ? source.getChildCount() : 0;
                     if (childCount > 0) {
                         int index = 0;
                         do {
@@ -113,14 +113,14 @@ public class TrackerService extends AccessibilityService {
                     }
                 } else {
                     sb.append("source:");
-                    sb.append(source.getClassName());
+                    sb.append(source != null ? source.getClassName() : "");
                     sb.append("\n");
                     sb.append("viewId:");
                     sb.append(idName);
                 }
                 if (TextUtils.isEmpty(sb.toString())) {
                     sb.append("source:");
-                    sb.append(source.getClassName());
+                    sb.append(source != null ? source.getClassName() : "");
                 }
                 if (mFloatWindowUtils != null) {
                     mFloatWindowUtils.updateDisplay(null, sb.toString());

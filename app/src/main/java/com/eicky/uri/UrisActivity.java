@@ -50,6 +50,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public final class UrisActivity extends AppCompatActivity {
     public static final int REQUEST_CODE_OPEN_FILE = 1;
@@ -71,6 +72,7 @@ public final class UrisActivity extends AppCompatActivity {
     private Toast mToast;
     private BaseAdapter mUriCacheAdapter;
     private PermissionHelper mPermissionHelper;
+    private CheckBox mWithBundle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +94,7 @@ public final class UrisActivity extends AppCompatActivity {
         mEtActivityPath = (AutoCompleteTextView) findViewById(R.id.et_activity_path);
         mEtActivityQuery = (AutoCompleteTextView) findViewById(R.id.et_activity_query);
         mEtActivityFragment = (AutoCompleteTextView) findViewById(R.id.et_activity_fragment);
+        mWithBundle = (CheckBox) findViewById(R.id.with_bundle);
         ListView listView = (ListView) findViewById(R.id.listView);
 
         findViewById(R.id.btn_to_activity_by_uri).setOnClickListener(new View.OnClickListener() {
@@ -238,10 +241,19 @@ public final class UrisActivity extends AppCompatActivity {
             return;
         }
         String uri = host + path + query + fragment;
+        boolean isWithBundle = mWithBundle.isChecked();
 
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(uri));
+            Uri parseUri = Uri.parse(uri);
+            intent.setData(parseUri);
+            Set<String> querys = parseUri.getQueryParameterNames();
+            if (isWithBundle && !querys.isEmpty()) {
+                for (String name: querys) {
+                    String parameter = parseUri.getQueryParameter(name);
+                    putByParseType(intent, name, parameter);
+                }
+            }
             startActivity(intent);
 
             mHostCacheManager.add(host);
@@ -259,6 +271,37 @@ public final class UrisActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             showToast("请检查输入是否正确");
+        }
+    }
+
+    private void putByParseType(Intent intent, String name, String parameter) {
+        if (!TextUtils.isEmpty(parameter)) {
+            if ("true".equals(parameter.toLowerCase())) {
+                intent.putExtra(name, true);
+            } else if ("false".equals(parameter.toLowerCase())) {
+                intent.putExtra(name, false);
+            } else if (!parameter.startsWith("0") && parameter.matches("^[0-9]*$")) {
+                try {
+                    int pInt = Integer.parseInt(parameter);
+                    intent.putExtra(name, pInt);
+                } catch (NumberFormatException e) {
+                    long pLong = Long.parseLong(parameter);
+                    intent.putExtra(name, pLong);
+                }
+            } else if (parameter.matches("^[0-9.]$")){
+                try {
+                    float pFloat = Float.parseFloat(parameter);
+                    intent.putExtra(name, pFloat);
+                } catch (NumberFormatException e) {
+                    try{
+                        double pDouble = Double.parseDouble(parameter);
+                        intent.putExtra(name, pDouble);
+                    }catch (NumberFormatException e1) {
+                        intent.putExtra(name, parameter);
+                    }
+                }
+                intent.putExtra(name, parameter);
+            }
         }
     }
 

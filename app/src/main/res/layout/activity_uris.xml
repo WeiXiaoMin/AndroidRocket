@@ -40,6 +40,14 @@
         android:visibility="gone"
         tools:ignore="HardcodedText" />
 
+    <CheckBox
+        android:id="@+id/with_bundle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:text="同时创建bundle（支持解析boolean、int、long、float、double、String类型）"
+        tools:ignore="HardcodedText" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -67,6 +75,6 @@
     <ListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
 </LinearLayout>

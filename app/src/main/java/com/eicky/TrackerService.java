@@ -72,7 +72,8 @@ public class TrackerService extends AccessibilityService {
 
             // 浮窗显示信息
             if (mFloatWindowUtils != null) {
-                String classNameStr = event.getClassName().toString();
+                CharSequence className = event.getClassName();
+                String classNameStr = className != null ? className.toString() : "";
                 if (isFilterClassName()) {
                     if (!TextUtils.isEmpty(classNameStr) && (classNameStr.contains("Activity")
                             || classNameStr.contains("Fragment") || classNameStr.contains("Dialog"))) {
